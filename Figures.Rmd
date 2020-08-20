@@ -1,18 +1,98 @@
 ---
-title: "R Notebook"
+title: "Figure Building"
 output: html_notebook
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
 
 ```{r}
-plot(cars)
+library(dplyr)
+library(lubridate)
+library(rnaturalearth)
+library(sf)
+library(ggplot2)
+
+
+dat<- read.csv("LWKs-2019-12-19.csv")
+
+data <- dat %>% 
+  select("Data.Resource.Name", 
+       "Locality", 
+       "Latitude", 
+       "Longitude",
+       "IBRA.7.Regions",
+       "Individual.count", 
+       "Year", 
+       "Month", 
+       "Day", 
+       "Event.Date...parsed"
+       ) %>% 
+  dplyr::filter(!is.na(Latitude)) %>% 
+  mutate(Year<=2006) %>% 
+  rename("New"='Year <= 2006') %>% 
+  dplyr::filter(!is.na(New))
+
+fence <- sf::st_read("data/DingoFenceGoodGoodSA.shp")
+
+lwk_points <- st_as_sf(data, coords=c("Longitude", "Latitude"), crs=st_crs(fence))
+
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+```{r}
+aus <- ne_countries(country="Australia", returnclass="sf")
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+ne_states(country ="Australia", returnclass = "sf")
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+map <- ggplot()+
+  geom_sf(data=aus)+
+  geom_sf(data=fence, size = 0.1, colour = "Red")+
+  geom_sf(data=lwk_points, size=1, aes(colour = data$New))+
+  xlim(136, 145)+
+  ylim(33, 26)+
+  coord_sf() +
+  theme_bw() +
+  ggtitle("Letter-winged Kite Sightings")+ 
+  theme(legend.title = element_blank()) +
+  scale_fill_manual(values = c('Blue', 'Red'),
+                    labels = c('Points', 'Fire'))
+
+print(map)
+```
+
+
+```{r}
+
+
+auscrop <- st_crop(aus, xmin = 110, xmax = 155,
+                        ymin = 45, ymax = 25)
+
+
+ggplot()+
+  geom_sf(data=aus, fill="orange")
+
+Mapby3<- ggplot() + 
+  geom_sf(data = aus) +
+  geom_sf(data = fireshape, size = 0.1, color = "Red", fill = "Red") + 
+  geom_sf(data=map2, size=0.5, colour = 'Blue')+
+  ggtitle("Checklists inside Fire Boundary") + 
+  coord_sf() +
+  theme_bw() + 
+  geom_sf(data = aus)
+
+make_map <- ggplot()+
+  geom_sf(data=aus)+
+  geom_sf(data=fireshape, size = 0.1, colour = "Red", fill = "Red")+
+  geom_sf(data=map2, size=0.5, colour = 'Blue')+
+  xlim(110, 155)+
+  ylim(45, 25)+
+  coord_sf() +
+  theme_bw() +
+  ggtitle("Checklists inside Fire Boundary")+ 
+  theme(legend.title = element_blank()) +
+  scale_fill_manual(values = c('Blue', 'Red'),
+                    labels = c('Points', 'Fire'))
+
+
+print(make_map)
+
+```
