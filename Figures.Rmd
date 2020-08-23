@@ -44,29 +44,6 @@ Aus<- st_read("data/1259030001_ste11aaust_shape/STE11aAust.shp")
 ```
 
 ```{r}
-aus <- ne_countries(country="Australia", returnclass="sf")
-
-ne_states(country ="Australia", returnclass = "sf")
-
-
-map <- ggplot()+
-  geom_sf(data=aus)+
-  geom_sf(data=fence, size = 0.1, colour = "Red")+
-  geom_sf(data=lwk_points, size=1, aes(colour = data$New))+
-  xlim(136, 145)+
-  ylim(33, 26)+
-  coord_sf() +
-  theme_bw() +
-  ggtitle("Letter-winged Kite Sightings")+ 
-  theme(legend.title = element_blank()) +
-  scale_fill_manual(values = c('Blue', 'Red'),
-                    labels = c('Points', 'Fire'))
-
-print(map)
-```
-
-
-```{r}
 map <- ggplot()+
   geom_sf(data=Aus)+
   geom_sf(data=fence, size = 0.5, colour = "Red")+
