@@ -5,7 +5,7 @@ output: html_notebook
 
 
 ```{r}
-library(dplyr)
+ library(dplyr)
 library(lubridate)
 library(rnaturalearth)
 library(sf)
@@ -27,8 +27,8 @@ data <- dat %>%
        "Event.Date...parsed"
        ) %>% 
   dplyr::filter(!is.na(Latitude)) %>% 
-  mutate(Year<=2006) %>% 
-  rename("New"='Year <= 2006') %>% 
+  mutate(Year<=2010) %>% 
+  rename("New"='Year <= 2010') %>% 
   dplyr::filter(!is.na(New))
 
 fence <- sf::st_read("data/DingoFenceGoodGoodSA.shp")
@@ -61,43 +61,21 @@ map <- ggplot()+
 print(map)
 ```
 
-
-
-
-####copied from BigData Project
+#Make rodent line graphs
 ```{r}
+traps<- read.csv("data/rodent_data.csv")
+traps <- na_if(traps, "#NULL!")
+traps$fuscusperhundred <- as.numeric(traps$fuscusperhundred)
+traps$Trip <- as.Date(traps$Trip)
 
+traps$Trip<-dmy(traps$Trip)
 
-auscrop <- st_crop(aus, xmin = 110, xmax = 155,
-                        ymin = 45, ymax = 25)
+ggplot(traps, aes(Trip, fuscusperhundred)) +
+  geom_line(aes(colour = fence))
+ggplot(traps, aes(Trip, fuscusperhundred)) +
+  geom_line(aes(colour = site))
 
-
-ggplot()+
-  geom_sf(data=aus, fill="orange")
-
-Mapby3<- ggplot() + 
-  geom_sf(data = aus) +
-  geom_sf(data = fireshape, size = 0.1, color = "Red", fill = "Red") + 
-  geom_sf(data=map2, size=0.5, colour = 'Blue')+
-  ggtitle("Checklists inside Fire Boundary") + 
-  coord_sf() +
-  theme_bw() + 
-  geom_sf(data = aus)
-
-make_map <- ggplot()+
-  geom_sf(data=aus)+
-  geom_sf(data=fireshape, size = 0.1, colour = "Red", fill = "Red")+
-  geom_sf(data=map2, size=0.5, colour = 'Blue')+
-  xlim(110, 155)+
-  ylim(45, 25)+
-  coord_sf() +
-  theme_bw() +
-  ggtitle("Checklists inside Fire Boundary")+ 
-  theme(legend.title = element_blank()) +
-  scale_fill_manual(values = c('Blue', 'Red'),
-                    labels = c('Points', 'Fire'))
-
-
-print(make_map)
 
 ```
+
+
