@@ -5,13 +5,15 @@ output: html_notebook
 
 
 ```{r}
- library(dplyr)
+library(dplyr)
 library(lubridate)
 library(rnaturalearth)
 library(sf)
 library(ggplot2)
+```
 
 
+```{r}
 dat<- read.csv("LWKs-2019-12-19.csv")
 
 data <- dat %>% 
@@ -66,8 +68,6 @@ print(map)
 traps<- read.csv("data/rodent_data.csv")
 traps <- na_if(traps, "#NULL!")
 traps$fuscusperhundred <- as.numeric(traps$fuscusperhundred)
-traps$Trip <- as.Date(traps$Trip)
-
 traps$Trip<-dmy(traps$Trip)
 
 ggplot(traps, aes(Trip, fuscusperhundred)) +
@@ -78,4 +78,37 @@ ggplot(traps, aes(Trip, fuscusperhundred)) +
 
 ```
 
+#Make rodent line graphs
+```{r}
+traps<- read.csv("data/rodent_data.csv")
+traps <- na_if(traps, "#NULL!")
+traps$fuscusperhundred <- as.numeric(traps$fuscusperhundred)
+traps$Trip<-dmy(traps$Trip)
+
+ggplot(traps, aes(Trip, fuscusperhundred)) +
+  geom_line(aes(colour = fence))
+ggplot(traps, aes(Trip, fuscusperhundred)) +
+  geom_line(aes(colour = site))
+
+
+```
+
+#Make rodent line graphs
+```{r}
+lwk<- read.csv("lwkpresence.csv")
+lwk$Year<- as.character(lwk$Year)
+ggplot(lwk, aes(Year, Present)) + geom_col()
+```
+#Rainfall
+```{r}
+rain1<- read.csv("Data/lindonrain/IDCJAC0001_017115_Data1.csv")
+rain2<- read.csv("Data/lindonrain/IDCJAC0001_017115_Data12.csv")
+
+ggplot(rain1, aes(Date, Monthly.Precipitation.Total..millimetres.)) + geom_col()
+rain1$Date <- as.yearmon(paste(rain1$Year, rain1$Month), "%Y %m")
+
+rainset<- filter(rain1, Year >= 2011)
+ggplot(rainset, aes(Date, Monthly.Precipitation.Total..millimetres.)) + geom_col()
+
+```
 
