@@ -96,47 +96,74 @@ outside<- filter(traps, fence == "out")
 
 outsidenew <- outside %>% 
   dplyr::group_by(Trip) %>% 
-  mutate(fusnew = mean(fuscusperhundred, na.rm=TRUE)) %>%
-  mutate(legnew = mean(leggadina, na.rm=TRUE)) %>%
-  mutate(ratnew = mean(Rattusperhundred, na.rm=TRUE)) %>%
-  mutate(smacnew = mean(Smac, na.rm=TRUE)) %>%
-  mutate(scrasnew = mean(Scrassi, na.rm=TRUE)) %>%
-  mutate(musnew = mean(Mus, na.rm=TRUE)) %>%
-  mutate(pausnew = mean(Paustralis, na.rm=TRUE)) %>%
-  mutate(phernew = mean(Pherman, na.rm=TRUE)) %>%
-  mutate(pdesnew = mean(Pdesertor, na.rm=TRUE)) %>%
-  mutate(mulnew = mean(mulgara, na.rm=TRUE)) %>%
+  mutate("Notomys fuscus" = mean(fuscusperhundred, na.rm=TRUE)) %>%
+  mutate("Leggadina foresti" = mean(leggadina, na.rm=TRUE)) %>%
+  mutate("Rattus villosissimus" = mean(Rattusperhundred, na.rm=TRUE)) %>%
+  mutate("Sminthopsis macroura" = mean(Smac, na.rm=TRUE)) %>%
+  mutate("Sminthopsis crassicaudata" = mean(Scrassi, na.rm=TRUE)) %>%
+  mutate("Mus musculus" = mean(Mus, na.rm=TRUE)) %>%
+  mutate("Pseudomys australis" = mean(Paustralis, na.rm=TRUE)) %>%
+  mutate("Pseudomys hermannsburgensis" = mean(Pherman, na.rm=TRUE)) %>%
+  mutate("Pseudomys desertor" = mean(Pdesertor, na.rm=TRUE)) %>%
+  mutate("Dasycercus cristicauda" = mean(mulgara, na.rm=TRUE)) %>%
   dplyr::ungroup(Trip)
 
 insidenew <- inside %>% 
   dplyr::group_by(Trip) %>% 
-  mutate(fusnew = mean(fuscusperhundred, na.rm=TRUE)) %>%
-  mutate(legnew = mean(leggadina, na.rm=TRUE)) %>%
-  mutate(ratnew = mean(Rattusperhundred, na.rm=TRUE)) %>%
-  mutate(smacnew = mean(Smac, na.rm=TRUE)) %>%
-  mutate(scrasnew = mean(Scrassi, na.rm=TRUE)) %>%
-  mutate(musnew = mean(Mus, na.rm=TRUE)) %>%
-  mutate(pausnew = mean(Paustralis, na.rm=TRUE)) %>%
-  mutate(phernew = mean(Pherman, na.rm=TRUE)) %>%
-  mutate(pdesnew = mean(Pdesertor, na.rm=TRUE)) %>%
-  mutate(mulnew = mean(mulgara, na.rm=TRUE)) %>%
+  mutate("Notomys fuscus" = mean(fuscusperhundred, na.rm=TRUE)) %>%
+  mutate("Leggadina foresti" = mean(leggadina, na.rm=TRUE)) %>%
+  mutate("Rattus villosissimus" = mean(Rattusperhundred, na.rm=TRUE)) %>%
+  mutate("Sminthopsis macroura" = mean(Smac, na.rm=TRUE)) %>%
+  mutate("Sminthopsis crassicaudata" = mean(Scrassi, na.rm=TRUE)) %>%
+  mutate("Mus musculus" = mean(Mus, na.rm=TRUE)) %>%
+  mutate("Pseudomys australis" = mean(Paustralis, na.rm=TRUE)) %>%
+  mutate("Pseudomys hermannsburgensis" = mean(Pherman, na.rm=TRUE)) %>%
+  mutate("Pseudomys desertor" = mean(Pdesertor, na.rm=TRUE)) %>%
+  mutate("Dasycercus cristicauda" = mean(mulgara, na.rm=TRUE)) %>%
   dplyr::ungroup(Trip)
 
 trapsnew<- bind_rows(insidenew, outsidenew)
 
 trapsfin <- trapsnew %>% 
   select(-"site", -"leggadina", -"Rattusperhundred", -"fuscusperhundred", -"Smac", -"Scrassi", -"Mus", -"Paustralis", -"Pherman", -"Pdesertor", -"daysuridspecies", -"rodentspecies", -"mulgara", -"letterwingselect", -"letterwingperkm") %>% 
-  tidyr::gather(Species, Capsphund, fusnew:mulnew) %>% 
+  tidyr::gather(Species, Capsphund, "Notomys fuscus":"Dasycercus cristicauda") %>% 
   distinct()
 
 infin <- filter(trapsfin, fence == "in")
 outfin <- filter(trapsfin, fence == "out")
+```
 
-ggplot(infin, aes(Trip, Capsphund)) +
-  geom_col(aes(position = "stack", colour = Species)) + theme_bw() + ggtitle("Inside")
+#label trick
+```{r}
+label.df <- data.frame(Trip = c("1-Jul-2013", "1-Mar-2014", "1-Jul-2015", "1-Nov-2017", "1-Mar-2018"),
+                       Capsphund = c(75), 
+                       Species = NA)
 
-ggplot(outfin, aes(Trip, Capsphund)) +
-  geom_col(aes(position = "stack", colour = Species)) + theme_bw() + ggtitle("Outside")
+label.df$Trip<-dmy(label.df$Trip)
+
+```
+
+#Making Plots
+```{r}
+inplot<- ggplot(infin, aes(Trip, Capsphund, fill = Species)) +
+  geom_col(aes(position = "stack")) + 
+  theme_bw() + ggtitle("Dingo Rare") + 
+  xlab("Sampling Trip") + 
+  ylab("Captures per 100 Trap Nights") +
+  scale_y_continuous(limits = c(0, 100), expand = c(0,0)) + 
+  theme(legend.text = element_text(face = "italic"))
+
+outplot<- ggplot(outfin, aes(Trip, Capsphund, fill = Species)) +
+  geom_col(aes(position = "stack")) + 
+  theme_bw() + ggtitle("Dingo Common") + 
+  xlab("Sampling Trip") + 
+  ylab("Captures per 100 Trap Nights") +
+  scale_y_continuous(limits = c(0, 100), expand = c(0,0)) + 
+  theme(legend.text = element_text(face = "italic")) +
+  geom_text(data = label.df, label = "*")
+
+print(inplot)
+print(outplot)
 
 ```
 
@@ -149,13 +176,24 @@ ggplot(lwk, aes(Year, Present)) + geom_col()
 #Rainfall
 ```{r}
 rain1<- read.csv("Data/lindonrain/IDCJAC0001_017115_Data1.csv")
-rain2<- read.csv("Data/lindonrain/IDCJAC0001_017115_Data12.csv")
 
 rain1$Date <- as.yearmon(paste(rain1$Year, rain1$Month), "%Y %m")
-ggplot(rain1, aes(Date, Monthly.Precipitation.Total..millimetres.)) + geom_col()
+
+#label.df <- data.frame(Year = c(2013, 2014, 2015, 2017, 2018),
+#                       Month = c(7, 3, 6, 11, 3),
+#                       Monthly.Precipitation.Total..millimetres. = c(20, 55, 20, 23, 20))
+
+#label.df$Date <- as.yearmon(paste(label.df$Year, label.df$Month), "%Y %m")
+
 
 rainset<- filter(rain1, Year >= 2011)
-ggplot(rainset, aes(Date, Monthly.Precipitation.Total..millimetres.)) + geom_col() + theme_bw()
+ggplot(rainset, aes(x = Date, y = Monthly.Precipitation.Total..millimetres.)) + 
+  geom_col() + 
+  theme_bw() +
+  xlab("Time") +
+  ylab("Monthly Precipitation in Millimetres")
+#+
+#  geom_text(data = label.df, label = "*")
 
 ```
 
