@@ -10,6 +10,7 @@ library(lubridate)
 library(rnaturalearth)
 library(sf)
 library(ggplot2)
+library(zoo)
 ```
 
 
@@ -70,6 +71,16 @@ traps <- na_if(traps, "#NULL!")
 traps$fuscusperhundred <- as.numeric(traps$fuscusperhundred)
 traps$Trip<-dmy(traps$Trip)
 
+traps$Rattusperhundred <- as.numeric(traps$Rattusperhundred)
+traps$Smac <- as.numeric(traps$Smac)
+traps$Scrassi <- as.numeric(traps$Scrassi)
+traps$Mus <- as.numeric(traps$Mus)
+traps$Paustralis <- as.numeric(traps$Paustralis)
+traps$Pherman <- as.numeric(traps$Pherman)
+traps$Pdesertor <- as.numeric(traps$Pdesertor)
+
+
+
 ggplot(traps, aes(Trip, fuscusperhundred)) +
   geom_line(aes(colour = fence))
 ggplot(traps, aes(Trip, fuscusperhundred)) +
@@ -78,22 +89,58 @@ ggplot(traps, aes(Trip, fuscusperhundred)) +
 
 ```
 
-#Make rodent line graphs
+#Averaging sites by fence
 ```{r}
-traps<- read.csv("data/rodent_data.csv")
-traps <- na_if(traps, "#NULL!")
-traps$fuscusperhundred <- as.numeric(traps$fuscusperhundred)
-traps$Trip<-dmy(traps$Trip)
+inside<- filter(traps, fence == "in")
+outside<- filter(traps, fence == "out")
 
-ggplot(traps, aes(Trip, fuscusperhundred)) +
-  geom_line(aes(colour = fence))
-ggplot(traps, aes(Trip, fuscusperhundred)) +
-  geom_line(aes(colour = site))
+outsidenew <- outside %>% 
+  dplyr::group_by(Trip) %>% 
+  mutate(fusnew = mean(fuscusperhundred, na.rm=TRUE)) %>%
+  mutate(legnew = mean(leggadina, na.rm=TRUE)) %>%
+  mutate(ratnew = mean(Rattusperhundred, na.rm=TRUE)) %>%
+  mutate(smacnew = mean(Smac, na.rm=TRUE)) %>%
+  mutate(scrasnew = mean(Scrassi, na.rm=TRUE)) %>%
+  mutate(musnew = mean(Mus, na.rm=TRUE)) %>%
+  mutate(pausnew = mean(Paustralis, na.rm=TRUE)) %>%
+  mutate(phernew = mean(Pherman, na.rm=TRUE)) %>%
+  mutate(pdesnew = mean(Pdesertor, na.rm=TRUE)) %>%
+  mutate(mulnew = mean(mulgara, na.rm=TRUE)) %>%
+  dplyr::ungroup(Trip)
 
+insidenew <- inside %>% 
+  dplyr::group_by(Trip) %>% 
+  mutate(fusnew = mean(fuscusperhundred, na.rm=TRUE)) %>%
+  mutate(legnew = mean(leggadina, na.rm=TRUE)) %>%
+  mutate(ratnew = mean(Rattusperhundred, na.rm=TRUE)) %>%
+  mutate(smacnew = mean(Smac, na.rm=TRUE)) %>%
+  mutate(scrasnew = mean(Scrassi, na.rm=TRUE)) %>%
+  mutate(musnew = mean(Mus, na.rm=TRUE)) %>%
+  mutate(pausnew = mean(Paustralis, na.rm=TRUE)) %>%
+  mutate(phernew = mean(Pherman, na.rm=TRUE)) %>%
+  mutate(pdesnew = mean(Pdesertor, na.rm=TRUE)) %>%
+  mutate(mulnew = mean(mulgara, na.rm=TRUE)) %>%
+  dplyr::ungroup(Trip)
+
+trapsnew<- bind_rows(insidenew, outsidenew)
+
+trapsfin <- trapsnew %>% 
+  select(-"site", -"leggadina", -"Rattusperhundred", -"fuscusperhundred", -"Smac", -"Scrassi", -"Mus", -"Paustralis", -"Pherman", -"Pdesertor", -"daysuridspecies", -"rodentspecies", -"mulgara", -"letterwingselect", -"letterwingperkm") %>% 
+  tidyr::gather(Species, Capsphund, fusnew:mulnew) %>% 
+  distinct()
+
+infin <- filter(trapsfin, fence == "in")
+outfin <- filter(trapsfin, fence == "out")
+
+ggplot(infin, aes(Trip, Capsphund)) +
+  geom_col(aes(position = "stack", colour = Species)) + theme_bw() + ggtitle("Inside")
+
+ggplot(outfin, aes(Trip, Capsphund)) +
+  geom_col(aes(position = "stack", colour = Species)) + theme_bw() + ggtitle("Outside")
 
 ```
 
-#Make rodent line graphs
+#Lwk presence
 ```{r}
 lwk<- read.csv("lwkpresence.csv")
 lwk$Year<- as.character(lwk$Year)
@@ -104,11 +151,11 @@ ggplot(lwk, aes(Year, Present)) + geom_col()
 rain1<- read.csv("Data/lindonrain/IDCJAC0001_017115_Data1.csv")
 rain2<- read.csv("Data/lindonrain/IDCJAC0001_017115_Data12.csv")
 
-ggplot(rain1, aes(Date, Monthly.Precipitation.Total..millimetres.)) + geom_col()
 rain1$Date <- as.yearmon(paste(rain1$Year, rain1$Month), "%Y %m")
+ggplot(rain1, aes(Date, Monthly.Precipitation.Total..millimetres.)) + geom_col()
 
 rainset<- filter(rain1, Year >= 2011)
-ggplot(rainset, aes(Date, Monthly.Precipitation.Total..millimetres.)) + geom_col()
+ggplot(rainset, aes(Date, Monthly.Precipitation.Total..millimetres.)) + geom_col() + theme_bw()
 
 ```
 
