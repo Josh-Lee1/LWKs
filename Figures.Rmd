@@ -11,6 +11,7 @@ library(rnaturalearth)
 library(sf)
 library(ggplot2)
 library(zoo)
+library(ggpubr)
 ```
 
 
@@ -161,7 +162,6 @@ outplot<- ggplot(outfin, aes(Trip, Capsphund, fill = Species)) +
   scale_y_continuous(limits = c(0, 100), expand = c(0,0)) + 
   theme(legend.text = element_text(face = "italic")) +
   geom_text(data = label.df, label = "*")
-
 print(inplot)
 print(outplot)
 
@@ -187,7 +187,7 @@ rain1$Date <- as.yearmon(paste(rain1$Year, rain1$Month), "%Y %m")
 
 
 rainset<- filter(rain1, Year >= 2011)
-ggplot(rainset, aes(x = Date, y = Monthly.Precipitation.Total..millimetres.)) + 
+rainplot<- ggplot(rainset, aes(x = Date, y = Monthly.Precipitation.Total..millimetres.)) + 
   geom_col() + 
   theme_bw() +
   xlab("Time") +
@@ -195,5 +195,15 @@ ggplot(rainset, aes(x = Date, y = Monthly.Precipitation.Total..millimetres.)) +
 #+
 #  geom_text(data = label.df, label = "*")
 
+```
+#fit on one panel
+```{r}
+ggarrange(rainplot, inplot, outplot, 
+          labels = c("A", "B", "C"),
+          ncol = 1, nrow = 3)
+
+ggarrange(inplot, outplot, rainplot,
+          common.legend = TRUE, 
+          ncol = 1, nrow = 3)
 ```
 
